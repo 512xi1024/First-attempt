@@ -23,6 +23,36 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 
+def has_transparency(im: Image.Image) -> bool:
+    """图片本身已经是透明底（四角透明）就跳过抠图，只裁边。"""
+    if im.mode not in ("RGBA", "LA"):
+        return False
+    a = im.convert("RGBA").split()[3]
+    w, h = im.size
+    corners = [a.getpixel(p) for p in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]]
+    return all(c == 0 for c in corners)
+
+
+def crop_only(src: Path, dst: Path, pad: int = 8) -> None:
+    im = Image.open(src).convert("RGBA")
+    bbox = im.split()[3].getbbox()
+    if bbox:
+        left, top, right, bottom = bbox
+        im = im.crop(
+            (
+                max(0, left - pad),
+                max(0, top - pad),
+                min(im.width, right + pad),
+                min(im.height, bottom + pad),
+            )
+        )
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    im.save(dst, "PNG", optimize=True)
+    size_kb = dst.stat().st_size / 1024
+    print(f"已是透明底，跳过抠图，只裁边 → {im.size[0]}x{im.size[1]}（{size_kb:.0f} KB）")
+    print(f"已保存：{dst}")
+
+
 def remove_white_bg(src: Path, dst: Path, tol: int = 22, pad: int = 8) -> None:
     im = Image.open(src).convert("RGB")
     arr = np.asarray(im).astype(np.int16)
@@ -98,4 +128,10 @@ if __name__ == "__main__":
     ap.add_argument("--tol", type=int, default=22, help="白色容差，越大清得越狠")
     ap.add_argument("--pad", type=int, default=8, help="裁剪后保留的边距")
     args = ap.parse_args()
-    remove_white_bg(args.src, args.dst, args.tol, args.pad)
+
+    # 一眼就知道该怎么处理：本来是透明底就别多此一举
+    probe = Image.open(args.src)
+    if has_transparency(probe):
+        crop_only(args.src, args.dst, args.pad)
+    else:
+        remove_white_bg(args.src, args.dst, args.tol, args.pad)
