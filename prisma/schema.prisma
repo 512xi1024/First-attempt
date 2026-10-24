@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+
+}
+
+// 作品表
+model Work {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  category     String
+  coverImage   String
+  detailImages String   @default("[]")
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// 设置表（key-value，所有后台可改的内容都放这）
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// 留言表（workId 为空 = 全局留言板留言；有值 = 挂在某个作品下的评论）
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  nickname   String   @default("匿名访客")
+  workId     String?
+  ip         String   @default("")
+  ownerToken String   @default("") // 发留言时发给访客的"凭证"，删自己的留言要对上它
+  createdAt  DateTime @default(now())
+}

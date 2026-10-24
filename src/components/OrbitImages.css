@@ -1,0 +1,70 @@
+/* ============================================================
+   OrbitImages 配套样式
+   （组件里用到的类名：orbit-container / orbit-item /
+     orbit-item-inner / orbit-image / orbit-path-svg /
+     orbit-center-content，以及三个 CSS 变量）
+   ============================================================ */
+
+.orbit-container {
+  position: relative;
+  overflow: hidden;
+  /* 允许页面竖向滚动，横向留给拖拽 */
+  touch-action: pan-y;
+}
+.orbit-container[data-dragging] {
+  cursor: grabbing;
+}
+
+/* 单张图：绝对定位，由引擎用 transform 摆到轨道上 */
+.orbit-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform, opacity;
+}
+.orbit-item[data-clickable] {
+  cursor: pointer;
+}
+
+.orbit-item-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--orbit-radius, 12px);
+  overflow: hidden;
+  background-color: #1c1917;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, var(--orbit-shadow, 0.3));
+  transition: transform 0.25s ease;
+}
+.orbit-item:hover .orbit-item-inner {
+  transform: scale(var(--orbit-hover-scale, 1.08));
+}
+
+.orbit-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 轨道虚线层 */
+.orbit-path-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 中心内容（板块名） */
+.orbit-center-content {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}

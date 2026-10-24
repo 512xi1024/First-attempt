@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TargetCursor from "@/components/target-cursor";
+import AmbientAudio from "@/components/ambient-audio";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -9,7 +11,27 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <TargetCursor
+          spinDuration={2}
+          hideDefaultCursor
+          parallaxOn
+          hoverDuration={0.2}
+          size={36}
+          cornerSize={12}
+          thickness={3}
+          padding={6}
+          dotSize={4}
+          cursorColor="#ffffff"
+          cursorColorOnTarget="#ffffff"
+          blendMode="difference"
+          matchRadius
+          showLabel
+          clickEffect
+        />
+        <AmbientAudio />
+      </body>
     </html>
   );
 }

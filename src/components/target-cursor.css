@@ -1,0 +1,95 @@
+/* ============================================================
+   TargetCursor 配套样式
+   ============================================================ */
+
+.target-cursor-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0; /* 鼠标动过之后才显示 */
+}
+.target-cursor-wrapper.tc-ready {
+  opacity: 1;
+}
+
+/* 准星框：四个角括号整体持续旋转 */
+.target-cursor {
+  position: absolute;
+  inset: 0;
+  animation: tc-spin var(--tc-spin-duration, 2s) linear infinite;
+}
+@keyframes tc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* 锁定目标时：停止旋转，稳稳框住 */
+.target-cursor-wrapper.tc-locked .target-cursor {
+  animation-play-state: paused;
+}
+
+.tc-corner {
+  position: absolute;
+  width: var(--tc-corner, 12px);
+  height: var(--tc-corner, 12px);
+  border-color: currentColor;
+  border-style: solid;
+}
+.tc-tl {
+  top: 0;
+  left: 0;
+  border-width: var(--tc-thickness, 3px) 0 0 var(--tc-thickness, 3px);
+}
+.tc-tr {
+  top: 0;
+  right: 0;
+  border-width: var(--tc-thickness, 3px) var(--tc-thickness, 3px) 0 0;
+}
+.tc-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 var(--tc-thickness, 3px) var(--tc-thickness, 3px);
+}
+.tc-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 var(--tc-thickness, 3px) var(--tc-thickness, 3px) 0;
+}
+
+.tc-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--tc-dot, 4px);
+  height: var(--tc-dot, 4px);
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+/* 标签：显示在准星下方（不随旋转） */
+.tc-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + 26px));
+  white-space: nowrap;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.tc-label.tc-show {
+  opacity: 1;
+}
+
+/* 隐藏系统鼠标箭头 */
+body.target-cursor-active,
+body.target-cursor-active * {
+  cursor: none !important;
+}

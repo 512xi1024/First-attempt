@@ -1,1 +1,95 @@
 @import "tailwindcss";
+
+/* 全站基础：深色做旧底 + 衬线字体（英伦侦探风） */
+body {
+  background-color: #0c0a09; /* stone-950 */
+  color: #e7e5e4; /* stone-200 */
+  font-family: ui-serif, Georgia, "Songti SC", "SimSun", serif;
+}
+
+/* ===== 滚动条幅（学习 igma.im 的 ticker） ===== */
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-ticker {
+  animation: ticker-scroll 120s linear infinite;
+}
+
+/* ===== 入场动画（fade + 轻微上移） ===== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out both;
+}
+
+/* ===== 页面转场（学习 igma.im）：切换页面时整体淡入 ===== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+/* ===== 光标闪烁（TextType 用） ===== */
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.cursor-blink {
+  animation: cursor-blink 0.5s step-end infinite;
+}
+
+/* ===== 封面卡片（学习 dnacapital.com）：
+   hover 时色板从底部向上展开，盖住封面图片 ===== */
+.cover-item .cover-wipe {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.1, 1);
+}
+.cover-item:hover .cover-wipe {
+  transform: scaleY(1);
+}
+
+/* ===== 导航下划线：hover 时从左滑入（学习 igma.im） ===== */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s ease;
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}

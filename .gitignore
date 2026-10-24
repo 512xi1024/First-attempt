@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# ===== 运行时数据：不进 git，避免以后 git pull 覆盖线上数据 =====
+# SQLite 数据库（作品、留言、后台密码都在里面）
+/prisma/dev.db
+/prisma/dev.db-journal
+/prisma/dev.db-wal
+/prisma/dev.db-shm
+
+# 后台上传的文件（作品图、简历 PDF）
+/data/uploads/
