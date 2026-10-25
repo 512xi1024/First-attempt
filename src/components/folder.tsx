@@ -4,8 +4,16 @@
 // Folder 档案夹组件（对照 reactbits.dev 的 Folder 行为实现）
 // - 文件夹合上时纸张只露小边（peek）
 // - openOn="click" 点夹子 → 纸张扇形升起，可翻阅
-// - 点某张纸 → 放大阅读（zoomOnClick）
-// - 整个夹子可拖拽（draggable）
+// - 点某张纸 → 打开阅读层（zoomOnClick）
+// - 整个夹子可拖拽（含纸张区域）
+//
+// 阅读层（2026-10-25 重做）：
+//   原来一次只能看一张，看下一张得先关掉，多页很难读。
+//   现在支持：左右翻页按钮 / 键盘 ← → / 底部页码直接跳 / 拖纸移动位置。
+//
+// 拖拽实现说明：不用 setPointerCapture。
+//   捕获会把 pointerup 重定向到捕获元素，导致子元素的 click 收不到，
+//   表现就是"点了没反应"。改成 window 上监听 move/up，click 就正常了。
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
@@ -100,9 +108,12 @@ export default function Folder({
   const [open, setOpen] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
-  const drag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(
-    null
-  );
+  const [dragging, setDragging] = useState(false);
+
+  // 阅读层里那张纸的位置（可拖走，方便并排看两页）
+  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
+  const [zoomDragging, setZoomDragging] = useState(false);
+
   const moved = useRef(false);
   const n = items.length;
 
@@ -112,17 +123,29 @@ export default function Folder({
     return () => clearTimeout(t);
   }, []);
 
-  // Esc 关闭放大纸
+  // 键盘：Esc 关闭，← → 翻页
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setZoom(null);
+      if (zoom === null) return;
+      if (e.key === "Escape") {
+        closeZoom();
+      } else if (e.key === "ArrowRight") {
+        setZoom((z) => (z === null ? z : Math.min(n - 1, z + 1)));
+      } else if (e.key === "ArrowLeft") {
+        setZoom((z) => (z === null ? z : Math.max(0, z - 1)));
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [zoom, n]);
 
   const dur = `${0.5 / speed}s`;
   const bounce = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+
+  function closeZoom() {
+    setZoom(null);
+    setZoomPos({ x: 0, y: 0 });
+  }
 
   function paperTransform(i: number) {
     if (!mounted) return "translateY(60%)";
@@ -135,33 +158,44 @@ export default function Folder({
     return `translateY(${-30 - i * 12}%) rotate(${spread}deg)`;
   }
 
-  function onFrontDown(e: React.PointerEvent) {
-    if (!draggable || e.button !== 0) return;
+  // 通用拖拽：window 上监听，不动用 pointer capture
+  function beginDrag(
+    e: React.PointerEvent,
+    origin: { x: number; y: number },
+    apply: (p: { x: number; y: number }) => void,
+    setActive: (v: boolean) => void
+  ) {
+    if (e.button !== 0) return;
     moved.current = false;
-    drag.current = {
-      sx: e.clientX,
-      sy: e.clientY,
-      ox: pos.x,
-      oy: pos.y,
+    const start = { sx: e.clientX, sy: e.clientY, ox: origin.x, oy: origin.y };
+    setActive(true);
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = ev.clientX - start.sx;
+      const dy = ev.clientY - start.sy;
+      if (Math.abs(dx) + Math.abs(dy) > 6) moved.current = true;
+      apply({ x: start.ox + dx, y: start.oy + dy });
     };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const onUp = () => {
+      setActive(false);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
-  function onFrontMove(e: React.PointerEvent) {
-    const d = drag.current;
-    if (!d) return;
-    const dx = e.clientX - d.sx;
-    const dy = e.clientY - d.sy;
-    if (Math.abs(dx) + Math.abs(dy) > 6) moved.current = true;
-    setPos({ x: d.ox + dx, y: d.oy + dy });
+
+  function onFrontDown(e: React.PointerEvent) {
+    if (!draggable) return;
+    beginDrag(e, pos, setPos, setDragging);
   }
-  function onFrontUp() {
-    drag.current = null;
-  }
+
   function onFrontClick() {
-    if (moved.current) return; // 拖拽过就不触发
+    if (moved.current) return; // 拖拽过就不触发展开
     if (openOn === "hover") return;
     if (!open) {
-      // 点夹子：先让纸张弹出，动画结束后再显示内容
       setOpen(true);
       if (zoomOnClick) {
         setTimeout(() => setZoom((z) => (z === null ? 0 : z)), 750 / speed);
@@ -169,6 +203,12 @@ export default function Folder({
     } else {
       setOpen(false);
     }
+  }
+
+  // 翻页 / 关闭：拖过纸就算拖拽，不当点击
+  function goTo(i: number) {
+    if (moved.current) return;
+    setZoom(Math.max(0, Math.min(n - 1, i)));
   }
 
   return (
@@ -181,12 +221,13 @@ export default function Folder({
           maxWidth: `${size * 640}px`,
           aspectRatio: "1.55",
         }}
+        onPointerDown={onFrontDown}
       >
         <div
           className="absolute inset-0"
           style={{
             transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
-            transition: drag.current ? "none" : "transform 0.35s ease",
+            transition: dragging ? "none" : "transform 0.35s ease",
           }}
         >
           {/* 夹子背板（最底层） */}
@@ -199,7 +240,10 @@ export default function Folder({
           {items.map((it, i) => (
             <div
               key={i}
-              onClick={() => open && zoomOnClick && setZoom(i)}
+              onClick={() => {
+                if (moved.current) return; // 刚拖动过，不当作点击
+                if (open && zoomOnClick) setZoom(i);
+              }}
               className="absolute bottom-[4%] left-[5%] right-[5%] top-[16%] cursor-pointer overflow-hidden rounded-[3px] px-4 py-3"
               style={{
                 backgroundColor: paperColor,
@@ -223,9 +267,6 @@ export default function Folder({
 
           {/* 夹子正面（盖住纸张下半截） */}
           <div
-            onPointerDown={onFrontDown}
-            onPointerMove={onFrontMove}
-            onPointerUp={onFrontUp}
             onClick={onFrontClick}
             onMouseEnter={() => openOn === "hover" && setOpen(true)}
             className={
@@ -235,7 +276,8 @@ export default function Folder({
             style={{
               backgroundColor: color,
               zIndex: 40,
-              boxShadow: "inset 0 2px 12px rgba(0,0,0,0.35), 0 14px 30px rgba(0,0,0,0.45)",
+              boxShadow:
+                "inset 0 2px 12px rgba(0,0,0,0.35), 0 14px 30px rgba(0,0,0,0.45)",
             }}
           >
             {/* 标签页 */}
@@ -252,35 +294,115 @@ export default function Folder({
                 {label}
               </span>
             </div>
+
+            {/* 页数提示：合上时也能知道一共几页 */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+              <span className="font-mono text-[10px] tracking-[0.3em] text-stone-300/40">
+                共 {n} 页 · 点击翻开
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 放大阅读层 */}
+      {/* ===== 阅读层：可翻页、可拖动 ===== */}
       {zoom !== null && items[zoom] && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-8 backdrop-blur-sm"
-          onClick={() => setZoom(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm sm:p-8"
+          onClick={closeZoom}
         >
           <div
-            className="animate-fade-in-up max-h-[80vh] w-[90vw] max-w-2xl overflow-y-auto rounded-sm p-8 shadow-2xl"
-            style={{ backgroundColor: paperColor }}
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) =>
+              beginDrag(e, zoomPos, setZoomPos, setZoomDragging)
+            }
+            className="animate-fade-in-up flex max-h-[88vh] w-full max-w-3xl cursor-grab flex-col overflow-hidden rounded-sm shadow-[0_30px_80px_rgba(0,0,0,0.65)] active:cursor-grabbing"
+            style={{
+              backgroundColor: paperColor,
+              transform: `translate3d(${zoomPos.x}px, ${zoomPos.y}px, 0)`,
+              transition: zoomDragging ? "none" : "transform 0.25s ease",
+            }}
           >
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-stone-500">
-              no.{zoom + 1} / {n}
-            </p>
-            <h2 className="mt-2 text-xl font-medium text-stone-900">
-              {items[zoom].title}
-            </h2>
-            <hr className="my-4 border-stone-400/50" />
-            <PaperMarkdown text={items[zoom].content || ""} />
-            <button
-              onClick={() => setZoom(null)}
-              className="cursor-target mt-6 rounded-full border border-stone-500/60 px-4 py-1.5 text-xs tracking-widest text-stone-700 transition hover:border-stone-900"
+            {/* 纸头：档案编号 + 标题 + 合上 */}
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-stone-400/40 px-5 py-4 sm:px-8 sm:py-5">
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-stone-500">
+                  no.{zoom + 1} / {n}
+                </p>
+                <h2 className="mt-1 truncate text-lg font-medium text-stone-900 sm:text-xl">
+                  {items[zoom].title}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  if (moved.current) return;
+                  closeZoom();
+                }}
+                aria-label="合上这张纸"
+                className="cursor-target -mr-1 shrink-0 rounded-full p-2 text-stone-500 transition hover:bg-stone-900/10 hover:text-stone-900"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* 正文：滚动区。key 跟着页码变，翻页时自动回到顶部 */}
+            <div
+              key={zoom}
+              className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6"
             >
-              合上这张纸
-            </button>
+              <PaperMarkdown text={items[zoom].content || ""} />
+            </div>
+
+            {/* 纸脚：翻页 */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-t border-stone-400/40 px-4 py-3 sm:px-6">
+              <button
+                onClick={() => goTo(zoom - 1)}
+                disabled={zoom === 0}
+                className="cursor-target flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs tracking-widest text-stone-600 transition hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                ‹ 上一张
+              </button>
+
+              {/* 页数不多时给圆点，多了只显示数字（免得挤成一排） */}
+              {n <= 10 ? (
+                <div className="flex items-center gap-1.5">
+                  {items.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => goTo(i)}
+                      aria-label={`第 ${i + 1} 张`}
+                      aria-current={i === zoom}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === zoom
+                          ? "w-5 bg-stone-700"
+                          : "w-1.5 bg-stone-400 hover:bg-stone-500"
+                      }`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <span className="font-mono text-[11px] tracking-[0.2em] text-stone-500">
+                  {zoom + 1} / {n}
+                </span>
+              )}
+
+              <button
+                onClick={() => goTo(zoom + 1)}
+                disabled={zoom === n - 1}
+                className="cursor-target flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs tracking-widest text-stone-600 transition hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                下一张 ›
+              </button>
+            </div>
           </div>
         </div>
       )}

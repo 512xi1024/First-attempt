@@ -12,6 +12,6 @@ export const ASSETS = {
   // 首页背景（侦探书房图；原图 3862px/14MB，压到 1920px/275KB，页面只以 20% 透明度显示，看不出差别）
   background: "/background.jpg",
 
-  // 角色形象（克里斯蒂小姐待机立绘；白底已抠成透明，源图 1215×1757）
+  // 角色形象（克里斯蒂小姐待机立绘，透明底 PNG 1400×2031；原图在 picture/克里斯蒂小姐初版.png）
   characterIdle: "/images/christie-idle.png",
 } as const;

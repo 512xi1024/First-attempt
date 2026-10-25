@@ -38,6 +38,11 @@ export default async function AboutPage() {
   const text = setting?.value || "";
   const sections = splitSections(text);
 
+  // 正文直接从「## 标题」开头时，会先产出一个空白的"简介"页，扔掉它
+  if (sections.length > 1 && sections[0].title === "简介" && !sections[0].content) {
+    sections.shift();
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* 漂浮线条背景（占位装饰，参数见组件 floating-lines.tsx） */}
