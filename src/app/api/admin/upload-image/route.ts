@@ -60,6 +60,9 @@ export async function POST(request: Request) {
     output = await sharp(input, { failOn: "none" })
       // 手机拍的照片带 EXIF 方向，rotate() 不传参 = 按 EXIF 自动摆正
       .rotate()
+      // 统一转成 sRGB：iPhone 照片、Mac 截图常带 Display P3 / AdobeRGB，
+      // 直接丢 ICC 会给浏览器按 sRGB 解释，颜色明显偏饱和
+      .toColourspace("srgb")
       .resize({
         width: MAX_EDGE,
         height: MAX_EDGE,
