@@ -105,7 +105,7 @@ export default function ChatBox() {
   return (
     <div className="flex max-h-full flex-col">
       {/* ===== 胶囊固定问题按钮（快捷方式，见 src/lib/config.ts） ===== */}
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap gap-2 [@media(max-height:560px)]:hidden">
         {SITE.chatQuestions.map((q) => (
           <button
             key={q.label}
@@ -137,7 +137,7 @@ export default function ChatBox() {
           {/* 消息区：高度自适应，内容多时向下拉长、到极限后内部滚动 */}
           <div
             ref={scrollRef}
-            className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-[15px] leading-7"
+            className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-[15px] leading-7"
           >
             {messages.map((m, i) => (
               <p

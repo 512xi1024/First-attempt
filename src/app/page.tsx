@@ -24,42 +24,42 @@ export default function Home() {
       />
 
       {/* ===== 顶部栏：左标题 + 右五按钮 ===== */}
-      <header className="relative z-10 flex items-center justify-between px-10 pt-8">
-        <h1 className="text-lg tracking-[0.3em] text-stone-100">
+      <header className="relative z-10 flex items-center justify-between gap-6 px-5 pt-6 sm:px-10 sm:pt-8">
+        <h1 className="shrink-0 whitespace-nowrap text-base tracking-[0.3em] text-stone-100 sm:text-lg">
           克里斯蒂小姐
         </h1>
-        <nav className="flex items-center gap-8 text-sm text-stone-400">
-          <Link href="/" className="cursor-target nav-link tracking-widest transition hover:text-amber-200">
+        <nav className="flex items-center gap-4 overflow-x-auto text-sm text-stone-400 sm:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Link href="/" className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200">
             首页
           </Link>
           <Link
             href="/about"
-            className="cursor-target nav-link tracking-widest transition hover:text-amber-200"
+            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             档案
           </Link>
           <Link
             href="/gallery"
-            className="cursor-target nav-link tracking-widest transition hover:text-amber-200"
+            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             总图档
           </Link>
           <Link
             href="/guestbook"
-            className="cursor-target nav-link tracking-widest transition hover:text-amber-200"
+            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             留言
           </Link>
           <Link
             href="/contact"
-            className="cursor-target nav-link tracking-widest transition hover:text-amber-200"
+            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             联系
           </Link>
           <a
             href={SITE.resumeUrl}
             download
-            className="cursor-target rounded-full border border-stone-700 px-4 py-1.5 tracking-widest text-stone-300 transition hover:-translate-y-0.5 hover:border-amber-200 hover:text-amber-200"
+            className="cursor-target shrink-0 whitespace-nowrap rounded-full border border-stone-700 px-4 py-1.5 tracking-widest text-stone-300 transition hover:-translate-y-0.5 hover:border-amber-200 hover:text-amber-200"
           >
             下载简历 PDF
           </a>
@@ -87,9 +87,10 @@ export default function Home() {
           )}
         </div>
 
-        {/* 对话框：挂在角色右手边，从手边向下延伸、逐字出现、高度自适应（不触屏幕底） */}
+        {/* 对话框：宽屏挂在角色右手边；窄屏（横屏手机）改为贴右侧，
+            避免 left-1/2 + 固定宽度算出屏幕外 */}
         <div
-          className="animate-fade-in-up absolute bottom-24 left-1/2 top-[22vh] ml-56 flex w-[26rem] flex-col justify-start"
+          className="animate-fade-in-up absolute bottom-2 right-4 top-2 flex w-[min(19rem,calc(100vw-2rem))] flex-col justify-start min-[1360px]:bottom-24 min-[1360px]:left-1/2 min-[1360px]:right-auto min-[1360px]:top-[22vh] min-[1360px]:ml-56 min-[1360px]:w-[26rem]"
           style={{ animationDelay: "0.25s" }}
         >
           <ChatBox />
@@ -116,7 +117,7 @@ export default function Home() {
       <a
         href="/admin"
         aria-label="后台管理" data-cursor-label="后台"
-        className="cursor-target group fixed bottom-6 right-6 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-stone-700/80 bg-stone-900/70 backdrop-blur-sm transition hover:border-amber-200/80"
+        className="cursor-target group fixed bottom-6 right-6 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-stone-700/80 bg-stone-900/70 backdrop-blur-sm transition hover:border-amber-200/80 max-[1360px]:right-auto max-[1360px]:left-6"
       >
         <svg
           viewBox="0 0 24 24"
