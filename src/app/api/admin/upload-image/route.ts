@@ -36,9 +36,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. 限制 5MB
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ ok: false, error: "图片不能超过 5MB" }, { status: 400 });
+  // 4. 限制 20MB（原先是 5MB，设计师出的 4K 大图普遍超标；
+  //    nginx 那边 client_max_body_size 也是 30m，留了余量）
+  if (file.size > 20 * 1024 * 1024) {
+    return NextResponse.json({ ok: false, error: "图片不能超过 20MB" }, { status: 400 });
   }
 
   // 5. 生成随机文件名（时间 + 随机数 + 扩展名）

@@ -26,6 +26,12 @@ export default function GalleryOrbit({ works }: { works: WorkItem[] }) {
     alt: w.title,
   }));
 
+  // 作品越多，单张越小、轨道越大，避免封面互相压住看不见
+  const n = withCover.length;
+  const itemSize = n <= 3 ? 280 : n <= 5 ? 240 : n <= 8 ? 200 : 176;
+  const radiusX = 560 + Math.min(n, 12) * 24;
+  const radiusY = 120 + Math.min(n, 12) * 10;
+
   // 悬停在轨道图片上时，找出它属于哪个板块
   function handleOver(e: React.MouseEvent) {
     const el = (e.target as HTMLElement).closest("[data-orbit-item]");
@@ -46,11 +52,11 @@ export default function GalleryOrbit({ works }: { works: WorkItem[] }) {
       <OrbitImages
         images={images}
         duration={45}
-        itemSize={280}
+        itemSize={itemSize}
         depth={0.5}
         rotation={-6}
-        radiusX={640}
-        radiusY={140}
+        radiusX={radiusX}
+        radiusY={radiusY}
         showPath
         pathColor="rgba(168,162,158,0.25)"
         pathWidth={2}
