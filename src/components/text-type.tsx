@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { playKeySound } from "@/lib/typewriter-sound";
 
 // ============================================================
 // TextType 打字机（对照 reactbits.dev 的 TextType 实现）
@@ -24,6 +25,8 @@ type TextTypeProps = {
   cursorCharacter?: string;
   cursorBlinkDuration?: number;
   mistakes?: number;
+  // 每打一个字放一声打字机按键音（音量很低，跟随「环境音」总开关）
+  sound?: boolean;
   onProgress?: () => void;
 };
 
@@ -37,6 +40,7 @@ export default function TextType({
   cursorCharacter = "_",
   cursorBlinkDuration = 0.5,
   mistakes = 0,
+  sound = false,
   onProgress,
 }: TextTypeProps) {
   const [display, setDisplay] = useState("");
@@ -65,6 +69,9 @@ export default function TextType({
     if (phase === "typing") {
       if (display.length < text.length) {
         timer.current = setTimeout(() => {
+          // 空格/换行不发声，否则会多出无意义的空响
+          const nextChar = text[display.length];
+          if (sound && nextChar && !/\s/.test(nextChar)) playKeySound();
           setDisplay(text.slice(0, display.length + 1));
           progressRef.current?.();
         }, typingSpeed);
@@ -89,7 +96,7 @@ export default function TextType({
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [display, phase, items, typingSpeed, pauseDuration, deletingSpeed, loop]);
+  }, [display, phase, items, typingSpeed, pauseDuration, deletingSpeed, loop, sound]);
 
   return (
     <span>

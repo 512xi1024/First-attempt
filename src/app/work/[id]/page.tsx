@@ -45,12 +45,15 @@ export default async function WorkPage({
           </p>
         )}
 
-        {/* 图片：封面 + 详情图 */}
+        {/* 图片：封面 + 详情图
+            详情图一律懒加载——不懒加载的话十几张大图会同时请求，
+            首屏要等全部下完才不跳 */}
         <div className="mt-8 space-y-6">
           {work.coverImage && (
             <img
               src={`/api/files/${work.coverImage}`}
               alt={work.title}
+              decoding="async"
               className="w-full rounded-lg border border-stone-800"
             />
           )}
@@ -59,6 +62,8 @@ export default async function WorkPage({
               key={name}
               src={`/api/files/${name}`}
               alt={`${work.title} 图 ${i + 1}`}
+              loading="lazy"
+              decoding="async"
               className="w-full rounded-lg border border-stone-800"
             />
           ))}

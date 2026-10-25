@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import sharp from "sharp";
 
 const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
 
@@ -11,6 +12,11 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/webp": "webp",
 };
+
+// 统一转 WebP：同样画质下比 PNG 小 80%~90%，比 JPG 小 30% 左右
+// 长边超过 MAX_EDGE 就等比缩小；小图不放大
+const MAX_EDGE = 2400;
+const WEBP_QUALITY = 86;
 
 export async function POST(request: Request) {
   // 1. 验登录
@@ -36,22 +42,54 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. 限制 20MB（原先是 5MB，设计师出的 4K 大图普遍超标；
-  //    nginx 那边 client_max_body_size 也是 30m，留了余量）
+  // 4. 限制 20MB（设计师出的 4K 大图普遍超标；nginx client_max_body_size 是 30m）
   if (file.size > 20 * 1024 * 1024) {
     return NextResponse.json({ ok: false, error: "图片不能超过 20MB" }, { status: 400 });
   }
 
-  // 5. 生成随机文件名（时间 + 随机数 + 扩展名）
+  const originalSize = file.size;
+  const input = Buffer.from(await file.arrayBuffer());
+
+  // 5. 转 WebP
+  // 转码失败（坏图/格式怪）时不阻塞上传，直接存原文件，前端照样能用
+  let output = input;
+  let outExt = ext;
+  let converted = false;
+
+  try {
+    output = await sharp(input, { failOn: "none" })
+      // 手机拍的照片带 EXIF 方向，rotate() 不传参 = 按 EXIF 自动摆正
+      .rotate()
+      .resize({
+        width: MAX_EDGE,
+        height: MAX_EDGE,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY, effort: 4 })
+      .toBuffer();
+    outExt = "webp";
+    converted = true;
+  } catch {
+    output = input;
+    outExt = ext;
+  }
+
+  // 6. 生成随机文件名（时间 + 随机数 + 扩展名）
   const filename = `${Date.now()}-${crypto
     .randomBytes(4)
-    .toString("hex")}.${ext}`;
+    .toString("hex")}.${outExt}`;
 
-  // 6. 存文件
+  // 7. 存文件
   await mkdir(UPLOAD_DIR, { recursive: true });
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+  await writeFile(path.join(UPLOAD_DIR, filename), output);
 
-  // 7. 把文件名返回给前端（前端把它记进作品数据里）
-  return NextResponse.json({ ok: true, filename });
+  // 8. 把文件名返回给前端（前端把它记进作品数据里）
+  return NextResponse.json({
+    ok: true,
+    filename,
+    converted,
+    originalBytes: originalSize,
+    bytes: output.length,
+  });
 }

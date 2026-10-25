@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import path from "path";
 
 const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
@@ -12,6 +12,11 @@ const CONTENT_TYPES: Record<string, string> = {
   jpeg: "image/jpeg",
   webp: "image/webp",
 };
+
+// 图片文件名带时间戳+随机串，内容永不重复 → 可以让浏览器缓存一年，不再回源
+const IMMUTABLE = "public, max-age=31536000, immutable";
+// 简历固定叫 resume.pdf、重传会覆盖同名文件 → 必须每次校验，不能长缓存
+const MUST_REVALIDATE = "no-cache";
 
 export async function GET(
   _request: Request,
@@ -33,12 +38,19 @@ export async function GET(
     return NextResponse.json({ ok: false, error: "不支持的文件类型" }, { status: 400 });
   }
 
+  const filePath = path.join(UPLOAD_DIR, name);
+
   try {
-    const buffer = await readFile(path.join(UPLOAD_DIR, name));
-    return new NextResponse(buffer, {
+    const [buffer, info] = await Promise.all([readFile(filePath), stat(filePath)]);
+
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Length": String(buffer.length),
+        "Last-Modified": info.mtime.toUTCString(),
+        // 图片长期缓存；PDF（简历）每次回源校验
+        "Cache-Control": ext === "pdf" ? MUST_REVALIDATE : IMMUTABLE,
       },
     });
   } catch {

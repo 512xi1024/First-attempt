@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setTypeSoundEnabled } from "@/lib/typewriter-sound";
 
 // ============================================================
 // 环境音：壁炉噼啪 + 远处马车（淡）
@@ -191,6 +192,8 @@ export default function AmbientAudio() {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     mutedRef.current = saved === "1";
+    // 打字机按键音跟这个按钮走：关掉环境音 = 全站静音
+    setTypeSoundEnabled(!mutedRef.current);
     // 默认就是"开"：状态先亮起来（声音等首次交互才真正开始，浏览器策略所致）
     setOn(!mutedRef.current);
     if (mutedRef.current) return;
@@ -224,10 +227,12 @@ export default function AmbientAudio() {
     if (on) {
       mutedRef.current = true;
       localStorage.setItem(STORAGE_KEY, "1");
+      setTypeSoundEnabled(false);
       stop();
     } else {
       mutedRef.current = false;
       localStorage.setItem(STORAGE_KEY, "0");
+      setTypeSoundEnabled(true);
       start();
     }
   }
@@ -240,7 +245,7 @@ export default function AmbientAudio() {
       title={on ? "关闭环境音" : "开启环境音"}
       data-cursor-label={on ? "静音" : "声音"}
       data-ambient-toggle
-      className={`cursor-target group fixed bottom-6 right-24 z-20 mb-1 flex h-10 items-center gap-2.5 rounded-full border px-4 backdrop-blur-sm transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/70 ${
+      className={`cursor-target group fixed bottom-6 right-24 z-20 mb-1 flex h-10 items-center gap-2.5 rounded-full border px-4 backdrop-blur-sm transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-200/70 max-[1360px]:right-auto max-[1360px]:left-20 ${
         on
           ? "border-amber-200/60 bg-stone-900/85 text-amber-100 shadow-lg shadow-black/50"
           : "border-stone-600 bg-stone-900/85 text-stone-300 hover:border-amber-200/50"

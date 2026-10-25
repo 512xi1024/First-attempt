@@ -134,7 +134,22 @@ export default function ChatBox() {
             </span>
           </div>
 
-          {/* 消息区：高度自适应，内容多时向下拉长、到极限后内部滚动 */}
+          {/* 可对话提示条：一开始没人知道这栏能打字，等访客真的开口了再收起来 */}
+          {messages.length <= 1 && (
+            <div className="flex items-center gap-2 border-b border-amber-200/25 bg-amber-200/[0.09] px-4 py-2">
+              <span className="relative flex h-1.5 w-1.5 shrink-0" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-200 opacity-70" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-300" />
+              </span>
+              <span className="font-mono text-[11px] tracking-[0.2em] text-amber-200">
+                可直接对话
+              </span>
+              <span className="truncate text-[11px] text-stone-400">
+                在下方输入问题，回车发送
+              </span>
+            </div>
+          )}
+
           <div
             ref={scrollRef}
             className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-[15px] leading-7"
@@ -150,10 +165,11 @@ export default function ChatBox() {
               >
                 {m.role === "assistant" ? (
                   /* TextType 打字机（对照 reactbits.dev）：
-                     75ms/字、下划线光标 0.5s 闪烁、打完停留不删除 */
+                     50ms/字、下划线光标 0.5s 闪烁、打完停留不删除；
+                     sound = 每字一声极轻的打字机按键音 */
                   <TextType
                     texts={[m.text]}
-                    typingSpeed={75}
+                    typingSpeed={50}
                     pauseDuration={1500}
                     deletingSpeed={50}
                     loop={false}
@@ -161,6 +177,7 @@ export default function ChatBox() {
                     cursorCharacter="_"
                     cursorBlinkDuration={0.5}
                     mistakes={0}
+                    sound
                     onProgress={scrollToBottom}
                   />
                 ) : (
@@ -173,14 +190,14 @@ export default function ChatBox() {
           {/* 输入区：访客自由打字，回车发送 */}
           <form
             onSubmit={handleSend}
-            className="flex items-center gap-3 border-t border-stone-800/90 px-4 py-3"
+            className="flex items-center gap-3 border-t border-amber-200/20 bg-stone-900/40 px-4 py-3"
           >
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="向克里斯蒂小姐提问…"
+              placeholder="在这里问她任何事，回车发送…"
               aria-label="向克里斯蒂小姐提问"
-              className="min-w-0 flex-1 bg-transparent text-[15px] text-stone-200 outline-none placeholder:text-stone-600"
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-stone-200 outline-none placeholder:text-stone-500"
             />
             <button
               type="submit"
