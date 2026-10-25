@@ -45,45 +45,74 @@ export default function GalleryOrbit({ works }: { works: WorkItem[] }) {
   }
 
   return (
-    <section
-      onMouseOver={handleOver}
-      onMouseLeave={() => setCenterName(null)}
-    >
-      <OrbitImages
-        images={images}
-        duration={45}
-        itemSize={itemSize}
-        depth={0.5}
-        rotation={-6}
-        radiusX={radiusX}
-        radiusY={radiusY}
-        showPath
-        pathColor="rgba(168,162,158,0.25)"
-        pathWidth={2}
-        pathDash={10}
-        itemRadius={24}
-        shadow={0.35}
-        hoverScale={1.1}
-        hoverSpeed={0.3}
-        draggable
-        clickToFront
-        onItemClick={(index: number) =>
-          router.push(`/work/${withCover[index].id}`)
-        }
-        /* 选中板块时，轨道中心显示板块名 */
-        centerContent={
-          centerName ? (
-            <div className="select-none text-center">
-              <p className="text-3xl tracking-[0.3em] text-stone-200">
-                {centerName}
+    <>
+      {/* 窄屏（手机上竖着看，比如走了「仍然竖屏浏览」）：轨道会缩成一小撮，
+          改成两列网格。图片走同一批 URL，已有缓存，不会重复下载。 */}
+      <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:hidden">
+        {withCover.map((w) => (
+          <li key={w.id}>
+            <button
+              type="button"
+              onClick={() => router.push(`/work/${w.id}`)}
+              className="block w-full text-left"
+            >
+              <img
+                src={`/api/files/${w.coverImage}`}
+                alt={w.title}
+                loading="lazy"
+                className="w-full rounded-sm border border-stone-800 object-cover"
+              />
+              <p className="mt-2 truncate text-sm text-stone-200">{w.title}</p>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-stone-500">
+                {(w.category || "").trim() || "未分类"}
               </p>
-              <p className="mt-3 font-mono text-xs uppercase tracking-widest text-stone-500">
-                section
-              </p>
-            </div>
-          ) : null
-        }
-      />
-    </section>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden sm:block">
+        <section
+          onMouseOver={handleOver}
+          onMouseLeave={() => setCenterName(null)}
+        >
+          <OrbitImages
+            images={images}
+            duration={45}
+            itemSize={itemSize}
+            depth={0.5}
+            rotation={-6}
+            radiusX={radiusX}
+            radiusY={radiusY}
+            showPath
+            pathColor="rgba(168,162,158,0.25)"
+            pathWidth={2}
+            pathDash={10}
+            itemRadius={24}
+            shadow={0.35}
+            hoverScale={1.1}
+            hoverSpeed={0.3}
+            draggable
+            clickToFront
+            onItemClick={(index: number) =>
+              router.push(`/work/${withCover[index].id}`)
+            }
+            /* 选中板块时，轨道中心显示板块名 */
+            centerContent={
+              centerName ? (
+                <div className="select-none text-center">
+                  <p className="text-3xl tracking-[0.3em] text-stone-200">
+                    {centerName}
+                  </p>
+                  <p className="mt-3 font-mono text-xs uppercase tracking-widest text-stone-500">
+                    section
+                  </p>
+                </div>
+              ) : null
+            }
+          />
+        </section>
+      </div>
+    </>
   );
 }
