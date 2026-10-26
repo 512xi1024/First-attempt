@@ -51,3 +51,6 @@ next-env.d.ts
 
 # 后台上传的文件（作品图、简历 PDF）
 /data/uploads/
+
+# 删除作品时的本地备份（记录 JSON + 原图），只留在本机
+/data/_trash/
