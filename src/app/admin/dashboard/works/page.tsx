@@ -30,6 +30,11 @@ export default function WorksPage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingDetails, setUploadingDetails] = useState(false);
   const [msg, setMsg] = useState("");
+  // 详情图拖拽排序：dragFrom = 正在拖的那张，dragOver = 当前经过的那张
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  // 顺序动过但还没保存（用来在图片列表下方提示）
+  const [orderDirty, setOrderDirty] = useState(false);
 
   async function loadWorks() {
     const res = await fetch("/api/admin/works");
@@ -43,11 +48,13 @@ export default function WorksPage() {
   }, []);
 
   function startCreate() {
+    setOrderDirty(false);
     setForm({ ...EMPTY_FORM });
     setMsg("");
   }
 
   function startEdit(work: any) {
+    setOrderDirty(false);
     let details: string[] = [];
     try {
       const parsed = JSON.parse(work.detailImages);
@@ -115,6 +122,19 @@ export default function WorksPage() {
         ? { ...f, detailImages: f.detailImages.filter((_, i) => i !== index) }
         : f
     );
+  }
+
+  // 把第 from 张挪到第 to 个位置（拖拽排序用）
+  function moveDetail(from: number, to: number) {
+    if (from === to) return;
+    setForm((f) => {
+      if (!f) return f;
+      const arr = [...f.detailImages];
+      if (from < 0 || from >= arr.length) return f;
+      const [item] = arr.splice(from, 1);
+      arr.splice(Math.max(0, Math.min(to, arr.length)), 0, item);
+      return { ...f, detailImages: arr };
+    });
   }
 
   async function saveWork() {
@@ -307,6 +327,11 @@ export default function WorksPage() {
               <div>
                 <label className="text-sm text-zinc-500">
                   详情图（可多选，选完自动上传，可多次添加）
+                  {form.detailImages.length > 1 && (
+                    <span className="ml-2 text-xs text-zinc-600">
+                      · 按住缩略图拖动，可调整展示顺序
+                    </span>
+                  )}
                 </label>
                 <div className="mt-1">
                   <input
@@ -324,22 +349,85 @@ export default function WorksPage() {
                 </div>
                 {form.detailImages.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {form.detailImages.map((name, i) => (
-                      <div key={name} className="relative">
-                        <img
-                          src={`/api/files/${name}?w=400`}
-                          alt={`详情图 ${i + 1}`}
-                          className="h-20 w-28 rounded-lg border border-zinc-800 object-cover"
-                        />
-                        <button
-                          onClick={() => removeDetail(i)}
-                          className="absolute right-1 top-1 rounded bg-black/70 px-1.5 text-xs text-white hover:bg-rose-800"
+                    {form.detailImages.map((name, i) => {
+                      const isDragging = dragFrom === i;
+                      const isTarget =
+                        dragOver === i && dragFrom !== null && dragFrom !== i;
+                      return (
+                        <div
+                          key={name}
+                          draggable
+                          onDragStart={(e) => {
+                            setDragFrom(i);
+                            e.dataTransfer.effectAllowed = "move";
+                            // Firefox 不设数据就不触发拖拽
+                            e.dataTransfer.setData("text/plain", String(i));
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOver !== i) setDragOver(i);
+                          }}
+                          onDragLeave={(e) => {
+                            // 移到自己的子元素上不算离开，否则高亮会闪
+                            if (
+                              e.currentTarget.contains(
+                                e.relatedTarget as Node | null
+                              )
+                            ) {
+                              return;
+                            }
+                            setDragOver((v) => (v === i ? null : v));
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (dragFrom !== null && dragFrom !== i) {
+                              moveDetail(dragFrom, i);
+                              setOrderDirty(true);
+                            }
+                            setDragFrom(null);
+                            setDragOver(null);
+                          }}
+                          onDragEnd={() => {
+                            setDragFrom(null);
+                            setDragOver(null);
+                          }}
+                          className={`relative cursor-grab transition active:cursor-grabbing ${
+                            isDragging ? "opacity-30" : ""
+                          }`}
                         >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                          <img
+                            src={`/api/files/${name}?w=400`}
+                            alt={`详情图 ${i + 1}`}
+                            draggable={false}
+                            className={`h-20 w-28 rounded-lg border object-cover transition ${
+                              isTarget
+                                ? "scale-105 border-amber-400 ring-2 ring-amber-400/60"
+                                : "border-zinc-800"
+                            }`}
+                          />
+                          {/* 顺序角标：第一张就是详情页最上面的那张 */}
+                          <span className="pointer-events-none absolute bottom-1 left-1 rounded bg-black/75 px-1.5 py-0.5 font-mono text-[10px] text-zinc-100">
+                            {i + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeDetail(i)}
+                            className="absolute right-1 top-1 rounded bg-black/70 px-1.5 text-xs text-white hover:bg-rose-800"
+                            aria-label={`删除第 ${i + 1} 张`}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
+                )}
+                {/* 顺序动过还没保存时提醒一句，否则容易以为拖完就生效了 */}
+                {orderDirty && (
+                  <p className="mt-2 text-xs text-amber-400">
+                    顺序已调整，记得点下方「保存」才会生效
+                  </p>
                 )}
               </div>
 
