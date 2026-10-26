@@ -72,11 +72,22 @@ export default async function AboutPage() {
       <div className="relative z-10">
         <SiteHeader />
 
-        <div className="animate-fade-in-up mx-auto max-w-4xl px-10 py-14">
+        {/* 间距用「宽 + 高同时满足」的断点：手机横屏时宽 844 但高只有 390，
+            只用宽度断点会让 py-14 / mt-12 生效，光留白就吃掉 200px，案卷被挤出去 */}
+        <div className="animate-fade-in-up mx-auto max-w-4xl px-6 py-6 sm:px-10 [@media(min-width:640px)and(min-height:600px)]:px-10 [@media(min-width:640px)and(min-height:600px)]:py-14">
           <h1 className="text-xl tracking-[0.3em] text-stone-100">档案</h1>
 
           {sections.length > 0 ? (
-            <div className="mt-12">
+            /* 案卷的宽高比是 1.55。手机上横屏只有 390 高，
+               按宽度铺满会把文件夹撑出屏幕，所以这里用「可用高度 × 1.55」
+               反过来限制最大宽度，矮屏自动缩成能完整看见的大小。
+               210 = 页头 + 上下内边距 + 标题 + 标题下间距，留一点余量 */
+            <div
+              className="mx-auto mt-6 w-full [@media(min-width:640px)and(min-height:600px)]:mt-12"
+              style={{
+                maxWidth: "min(100%, calc((100dvh - 210px) * 1.55))",
+              }}
+            >
               <Folder
                 label="档案"
                 items={sections}
