@@ -46,7 +46,7 @@ export const SITE = {
   contact: {
     email: "2839421749@qq.com", // QQ 邮箱
     qq: "2839421749",
-    wechatQr: "/wechat-qr.png", // 微信二维码（放 public 目录）
+    wechatQr: "/wechat-qr.webp", // 微信二维码（放 public 目录）
     note: "通常 24 小时内回信。微信最直接。",
   },
 };

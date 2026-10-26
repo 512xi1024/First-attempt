@@ -192,7 +192,7 @@ export default function WorksPage() {
             >
               {w.coverImage ? (
                 <img
-                  src={`/api/files/${w.coverImage}`}
+                  src={`/api/files/${w.coverImage}?w=400`}
                   alt={w.title}
                   className="h-16 w-24 rounded-lg border border-zinc-800 object-cover"
                 />
@@ -297,7 +297,7 @@ export default function WorksPage() {
                 </div>
                 {form.coverImage && (
                   <img
-                    src={`/api/files/${form.coverImage}`}
+                    src={`/api/files/${form.coverImage}?w=400`}
                     alt="封面预览"
                     className="mt-2 h-32 w-48 rounded-lg border border-zinc-800 object-cover"
                   />
@@ -327,7 +327,7 @@ export default function WorksPage() {
                     {form.detailImages.map((name, i) => (
                       <div key={name} className="relative">
                         <img
-                          src={`/api/files/${name}`}
+                          src={`/api/files/${name}?w=400`}
                           alt={`详情图 ${i + 1}`}
                           className="h-20 w-28 rounded-lg border border-zinc-800 object-cover"
                         />

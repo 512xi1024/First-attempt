@@ -52,6 +52,7 @@ export default function Home() {
           </Link>
           <Link
             href="/contact"
+            prefetch={false}
             className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             联系
@@ -76,6 +77,9 @@ export default function Home() {
             <img
               src={ASSETS.characterIdle}
               alt="克里斯蒂小姐"
+              /* 首页唯一的主体形象，让它优先于背景图下载 */
+              fetchPriority="high"
+              decoding="async"
               className="max-h-[72vh] w-auto object-contain object-bottom"
             />
           ) : (

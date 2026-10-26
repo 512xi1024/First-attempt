@@ -21,8 +21,12 @@ export default function GalleryOrbit({ works }: { works: WorkItem[] }) {
   const withCover = works.filter((w) => w.coverImage);
   if (withCover.length === 0) return null;
 
+  // 轨道/网格里的封面只占两三百像素，用 ?w=520 让服务端缩好再发，
+  // 不要为了一张小卡片下载几百 KB 的原图
+  const thumb = (file: string, w = 520) => `/api/files/${file}?w=${w}`;
+
   const images = withCover.map((w) => ({
-    src: `/api/files/${w.coverImage}`,
+    src: thumb(w.coverImage),
     alt: w.title,
   }));
 
@@ -57,9 +61,10 @@ export default function GalleryOrbit({ works }: { works: WorkItem[] }) {
               className="block w-full text-left"
             >
               <img
-                src={`/api/files/${w.coverImage}`}
+                src={thumb(w.coverImage, 600)}
                 alt={w.title}
                 loading="lazy"
+                decoding="async"
                 className="w-full rounded-sm border border-stone-800 object-cover"
               />
               <p className="mt-2 truncate text-sm text-stone-200">{w.title}</p>

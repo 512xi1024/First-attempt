@@ -98,8 +98,8 @@ export default function ContactPage() {
               <img
                 src={c.wechatQr}
                 alt="小溪的微信二维码，扫码添加好友"
-                width={696}
-                height={696}
+                width={520}
+                height={520}
                 className="w-full rounded-[2px] bg-white"
               />
               <figcaption className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.28em] text-[#5b5348]">

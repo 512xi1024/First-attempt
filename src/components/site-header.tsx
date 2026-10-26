@@ -10,8 +10,11 @@ export default function SiteHeader() {
       {/* 手机窄屏（横屏也一样）会挤：文字一律不换行，导航允许横向滚动，
           宁可超出可滑，也不要让标题被压成一列竖排字 */}
       <header className="flex items-center justify-between gap-6 px-5 pt-6 sm:px-10 sm:pt-8">
+        {/* prefetch={false}：默认预取会把首页的立绘+背景图也一起下下来，
+            导致任何一个二级页面都白背 250KB 用不到的图 */}
         <Link
           href="/"
+          prefetch={false}
           className="cursor-target shrink-0 whitespace-nowrap text-base tracking-[0.3em] text-stone-100 sm:text-lg"
         >
           克里斯蒂小姐
@@ -19,6 +22,7 @@ export default function SiteHeader() {
         <nav className="flex items-center gap-4 overflow-x-auto text-sm text-stone-400 sm:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Link
             href="/"
+            prefetch={false}
             className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             首页
@@ -43,6 +47,7 @@ export default function SiteHeader() {
           </Link>
           <Link
             href="/contact"
+            prefetch={false}
             className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
           >
             联系
