@@ -109,3 +109,13 @@ body.target-cursor-active [data-cursor-hide],
 body.target-cursor-active [data-cursor-hide] * {
   cursor: auto !important;
 }
+
+/* 隐藏区里个别元素仍需要明确的光标语义 */
+body.target-cursor-active [data-cursor-hide] button,
+body.target-cursor-active [data-cursor-hide] a {
+  cursor: pointer !important;
+}
+/* 作品图：提示"可以点开放大"（特异性高于上面那条 button） */
+body.target-cursor-active [data-cursor-hide] .cursor-zoom-in {
+  cursor: zoom-in !important;
+}

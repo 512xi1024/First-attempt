@@ -22,6 +22,15 @@ body {
   will-change: transform;
 }
 
+/* ===== 灯箱打开时，收起页面上的浮动控件 =====
+   环境音按钮是 fixed 定位，会浮在看图的画面上。
+   与其纠缠层级，不如看图时直接让它退场。 */
+body.lightbox-open [data-ambient-toggle] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
 /* ===== 入场动画（fade + 轻微上移） ===== */
 @keyframes fade-in-up {
   from {

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/site-header";
 import CommentsSection from "@/components/comments-section";
+import WorkGallery from "@/components/work-gallery";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -45,31 +46,21 @@ export default async function WorkPage({
           </p>
         )}
 
-        {/* 图片：封面 + 详情图
-            详情图一律懒加载——不懒加载的话十几张大图会同时请求，
-            首屏要等全部下完才不跳
-            data-cursor-hide：这一块不显示准星光标（看图时别被挡），
-            导航栏、正文、评论区的光标照旧 */}
-        <div className="mt-8 space-y-6" data-cursor-hide>
-          {work.coverImage && (
-            <img
-              src={`/api/files/${work.coverImage}`}
-              alt={work.title}
-              decoding="async"
-              className="w-full rounded-lg border border-stone-800"
-            />
-          )}
-          {detailImages.map((name, i) => (
-            <img
-              key={name}
-              src={`/api/files/${name}`}
-              alt={`${work.title} 图 ${i + 1}`}
-              loading="lazy"
-              decoding="async"
-              className="w-full rounded-lg border border-stone-800"
-            />
-          ))}
-        </div>
+        {/* 图片：封面 + 详情图，点任意一张进全屏灯箱
+            灯箱和正文用同一个 URL，点开时缓存命中、不重新下载；
+            首张 eager，其余 lazy，没滚到的图不会请求 */}
+        <WorkGallery
+          title={work.title}
+          items={[
+            ...(work.coverImage
+              ? [{ file: work.coverImage, alt: `${work.title} 封面` }]
+              : []),
+            ...detailImages.map((name, i) => ({
+              file: name,
+              alt: `${work.title} 图 ${i + 1}`,
+            })),
+          ]}
+        />
 
         {/* 评论区 */}
         <div className="mt-14 border-t border-stone-800 pt-10">
