@@ -33,6 +33,17 @@ async function getAssistantReply(
     if (data.ok) {
       return { reply: data.reply as string, action: data.action };
     }
+    // 业务性提示（如消息过长）原样告诉访客；
+    // 技术性报错不外露，统一用侦探腔兜底
+    const raw = typeof data.error === "string" ? data.error : "";
+    const TECHNICAL = [
+      "AI 密钥未配置",
+      "AI 调用失败，请稍后再试",
+      "AI 没有返回内容",
+    ];
+    if (raw && !TECHNICAL.includes(raw)) {
+      return { reply: raw };
+    }
     return {
       reply:
         "……事务所的线路还没接通——AI 密钥尚未配置。委托人的话，我先记在案了。",

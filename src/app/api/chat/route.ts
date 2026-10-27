@@ -10,6 +10,17 @@ import { prisma } from "@/lib/db";
 const MODEL = "deepseek-chat";
 const API_URL = "https://api.deepseek.com/chat/completions";
 
+// ============================================================
+// 输入长度上限（唯一的防滥用措施，刻意留得很宽松）
+// 目的：不让一次请求带进来几十万字把额度烧光，
+//       同时正常访客（包括贴一段长说明的）完全不会碰到。
+// 3000 字 ≈ 4500 token，单次成本约 ¥0.005，可以接受。
+// 历史另算总预算：从最近的一条往前取，超出就丢掉更早的，
+// 不截断单条内容（截断会让 AI 答得前言不搭后语）。
+// ============================================================
+const MAX_MESSAGE_CHARS = 3000;
+const MAX_HISTORY_CHARS = 10000;
+
 // 默认人设（后台「AI 人设提示词」填了内容就用后台的）
 const DEFAULT_PERSONA = `你是"克里斯蒂小姐"，侦探形象的 AI 引导助手，代替站长小溪接待访客。
 性格：老派英伦侦探，话不多但有推理感，称呼访客为"委托人"。
@@ -156,6 +167,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (message.length > MAX_MESSAGE_CHARS) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `这封信太厚了，${MAX_MESSAGE_CHARS} 字以内我还能一一读完。`,
+      },
+      { status: 413 }
+    );
+  }
+
+  // 历史：从最近的一条往前装，超出总预算就把更早的丢掉
+  const history: { role?: string; text?: string }[] = [];
+  let historyChars = 0;
+  for (let i = rawHistory.length - 1; i >= 0; i--) {
+    const len = (rawHistory[i].text || "").toString().length;
+    if (historyChars + len > MAX_HISTORY_CHARS) break;
+    historyChars += len;
+    history.unshift(rawHistory[i]);
+  }
+
   // 组装系统提示：人设（后台可改）+ 知识库 + 作品清单
   const [sys, kb, works] = await Promise.all([
     prisma.setting.findUnique({ where: { key: "system_prompt" } }),
@@ -184,7 +215,7 @@ export async function POST(req: NextRequest) {
   // 前端历史里的 "model" 映射成 OpenAI 的 "assistant"
   const messages: ChatMessage[] = [
     { role: "system", content: systemText },
-    ...rawHistory
+    ...history
       .filter((m) => (m.text || "").toString().trim())
       .map((m) => ({
         role: (m.role === "model" ? "assistant" : "user") as
