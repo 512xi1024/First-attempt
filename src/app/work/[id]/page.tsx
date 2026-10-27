@@ -47,8 +47,10 @@ export default async function WorkPage({
 
         {/* 图片：封面 + 详情图
             详情图一律懒加载——不懒加载的话十几张大图会同时请求，
-            首屏要等全部下完才不跳 */}
-        <div className="mt-8 space-y-6">
+            首屏要等全部下完才不跳
+            data-cursor-hide：这一块不显示准星光标（看图时别被挡），
+            导航栏、正文、评论区的光标照旧 */}
+        <div className="mt-8 space-y-6" data-cursor-hide>
           {work.coverImage && (
             <img
               src={`/api/files/${work.coverImage}`}

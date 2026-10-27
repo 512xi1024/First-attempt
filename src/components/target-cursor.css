@@ -93,3 +93,19 @@ body.target-cursor-active,
 body.target-cursor-active * {
   cursor: none !important;
 }
+
+/* ============================================================
+   局部隐藏准星：给容器加 data-cursor-hide
+   用途：作品详情页的大图区域。看图时准星会挡视线，
+   这里把准星收掉、并把系统箭头放回来。
+   （特异性 0,2,1 高于上面那条 0,1,1，不需要 !important 也能覆盖）
+   ============================================================ */
+.target-cursor-wrapper.tc-hidden {
+  opacity: 0 !important;
+  transition: opacity 0.15s ease;
+}
+
+body.target-cursor-active [data-cursor-hide],
+body.target-cursor-active [data-cursor-hide] * {
+  cursor: auto !important;
+}

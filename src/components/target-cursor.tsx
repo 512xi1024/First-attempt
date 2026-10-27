@@ -164,6 +164,13 @@ export default function TargetCursor({
         !!hovering || (!hovering && isTextTarget(lastTarget))
       );
 
+      // 带 data-cursor-hide 的区域（作品大图等）不显示准星，
+      // 交回系统箭头——看图时不该有东西跟着手指跑
+      wrapper.classList.toggle(
+        "tc-hidden",
+        !!lastTarget?.closest?.("[data-cursor-hide]")
+      );
+
       // 标签
       const showLabelNow = showLabel && hovering && labelText;
       label.textContent = labelText;

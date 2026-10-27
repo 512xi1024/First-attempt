@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ASSETS } from "@/lib/assets";
+import SiteNav from "@/components/site-nav";
 import { SITE } from "@/lib/config";
 import ChatBox from "@/components/chat-box";
 import TickerBar from "@/components/ticker-bar";
@@ -28,43 +28,7 @@ export default function Home() {
         <h1 className="shrink-0 whitespace-nowrap text-base tracking-[0.3em] text-stone-100 sm:text-lg">
           克里斯蒂小姐
         </h1>
-        <nav className="flex items-center gap-4 overflow-x-auto text-sm text-stone-400 sm:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Link href="/" className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200">
-            首页
-          </Link>
-          <Link
-            href="/about"
-            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
-          >
-            档案
-          </Link>
-          <Link
-            href="/gallery"
-            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
-          >
-            总图档
-          </Link>
-          <Link
-            href="/guestbook"
-            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
-          >
-            留言
-          </Link>
-          <Link
-            href="/contact"
-            prefetch={false}
-            className="cursor-target nav-link shrink-0 whitespace-nowrap tracking-widest transition hover:text-amber-200"
-          >
-            联系
-          </Link>
-          <a
-            href={SITE.resumeUrl}
-            download
-            className="cursor-target shrink-0 whitespace-nowrap rounded-full border border-stone-700 px-4 py-1.5 tracking-widest text-stone-300 transition hover:-translate-y-0.5 hover:border-amber-200 hover:text-amber-200"
-          >
-            下载简历 PDF
-          </a>
-        </nav>
+        <SiteNav />
       </header>
       <TickerBar />
 

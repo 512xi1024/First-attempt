@@ -17,7 +17,9 @@ body {
   }
 }
 .animate-ticker {
-  animation: ticker-scroll 120s linear infinite;
+  /* 时长由组件通过 --ticker-duration 传进来（跨页面接续播放要用到这个值） */
+  animation: ticker-scroll var(--ticker-duration, 120s) linear infinite;
+  will-change: transform;
 }
 
 /* ===== 入场动画（fade + 轻微上移） ===== */

@@ -173,9 +173,10 @@ export default function AmbientAudio() {
       const ctx = new AudioContext();
       ctxRef.current = ctx;
       const master = ctx.createGain();
-      // 总音量很低："淡淡的"——需要更响只要改这一个数
+      // 总音量：只是"有这一层空气"的程度，不能盖过对话。
+      // 2026-10-27 从 0.38 提到 0.46（访客反馈偏小）。还嫌小就继续加这个数
       master.gain.setValueAtTime(0.0001, ctx.currentTime);
-      master.gain.linearRampToValueAtTime(0.38, ctx.currentTime + 2.5);
+      master.gain.linearRampToValueAtTime(0.46, ctx.currentTime + 2.5);
       master.connect(ctx.destination);
       masterRef.current = master;
 

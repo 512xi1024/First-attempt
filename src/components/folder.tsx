@@ -21,6 +21,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
+import Magnetic from "@/components/magnetic";
 
 export type FolderItem = {
   title: string;
@@ -422,31 +423,52 @@ export default function Folder({
                   <PaperMarkdown text={items[zoom].content || ""} />
                 </div>
 
-                {/* 纸脚：翻页 */}
-                <div className="flex shrink-0 items-center justify-between gap-3 border-t border-stone-400/40 px-4 py-3 sm:px-6">
-                  <button
-                    onClick={() => goTo(zoom - 1)}
-                    disabled={zoom === 0}
-                    className="cursor-target flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs tracking-widest text-stone-600 transition hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
-                  >
-                    ‹ 上一张
-                  </button>
+                {/* 纸脚：翻页
+                    按钮加边框和底色，别只靠一行小字；圆点的点击热区
+                    从 6px 放大到 24px；两者都带轻微磁吸，光标靠近就贴过去 */}
+                <div className="flex shrink-0 items-center justify-between gap-2 border-t border-stone-400/40 px-3 py-3 sm:gap-3 sm:px-6">
+                  <Magnetic strength={0.25} radius={26}>
+                    <button
+                      onClick={() => goTo(zoom - 1)}
+                      disabled={zoom === 0}
+                      className="flex items-center gap-1 rounded-full border border-stone-500/60 bg-stone-900/[0.04] px-3 py-2 text-xs tracking-widest text-stone-700 shadow-sm transition hover:border-stone-700 hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:border-stone-400/40 disabled:bg-transparent disabled:text-stone-400 disabled:opacity-45 disabled:shadow-none sm:gap-1.5 sm:px-4"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-3.5 w-3.5 shrink-0"
+                        aria-hidden="true"
+                      >
+                        <path d="M15 6l-6 6 6 6" />
+                      </svg>
+                      <span className="hidden sm:inline">上一张</span>
+                    </button>
+                  </Magnetic>
 
                   {/* 页数不多时给圆点，多了只显示数字（免得挤成一排） */}
                   {n <= 10 ? (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center">
                       {items.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => goTo(i)}
-                          aria-label={`第 ${i + 1} 张`}
-                          aria-current={i === zoom}
-                          className={`h-1.5 rounded-full transition-all ${
-                            i === zoom
-                              ? "w-5 bg-stone-700"
-                              : "w-1.5 bg-stone-400 hover:bg-stone-500"
-                          }`}
-                        />
+                        <Magnetic key={i} strength={0.3} radius={20}>
+                          <button
+                            onClick={() => goTo(i)}
+                            aria-label={`第 ${i + 1} 张`}
+                            aria-current={i === zoom}
+                            className="group grid h-6 w-4 place-items-center rounded-full transition hover:bg-stone-900/[0.06] sm:w-6"
+                          >
+                            <span
+                              className={`block h-1.5 rounded-full transition-all ${
+                                i === zoom
+                                  ? "w-5 bg-stone-700"
+                                  : "w-1.5 bg-stone-400 group-hover:bg-stone-600"
+                              }`}
+                            />
+                          </button>
+                        </Magnetic>
                       ))}
                     </div>
                   ) : (
@@ -455,13 +477,27 @@ export default function Folder({
                     </span>
                   )}
 
-                  <button
-                    onClick={() => goTo(zoom + 1)}
-                    disabled={zoom === n - 1}
-                    className="cursor-target flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs tracking-widest text-stone-600 transition hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
-                  >
-                    下一张 ›
-                  </button>
+                  <Magnetic strength={0.25} radius={26}>
+                    <button
+                      onClick={() => goTo(zoom + 1)}
+                      disabled={zoom === n - 1}
+                      className="flex items-center gap-1 rounded-full border border-stone-500/60 bg-stone-900/[0.04] px-3 py-2 text-xs tracking-widest text-stone-700 shadow-sm transition hover:border-stone-700 hover:bg-stone-900/10 hover:text-stone-900 disabled:cursor-not-allowed disabled:border-stone-400/40 disabled:bg-transparent disabled:text-stone-400 disabled:opacity-45 disabled:shadow-none sm:gap-1.5 sm:px-4"
+                    >
+                      <span className="hidden sm:inline">下一张</span>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-3.5 w-3.5 shrink-0"
+                        aria-hidden="true"
+                      >
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                    </button>
+                  </Magnetic>
                 </div>
               </div>
             </div>,
