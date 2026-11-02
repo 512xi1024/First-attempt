@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 // 接待台说明（编号规章，档案感）
 const RULES = [
-  { no: "01", text: "署名可留可白。留白者，记为匿名访客。" },
+  { no: "01", text: "署名可留白。留白者，记为匿名访客。" },
   { no: "02", text: "每条至多 500 字，落笔即入册。" },
   { no: "03", text: "自己的记录，只有自己能删。" },
 ];
@@ -35,46 +35,50 @@ export default function GuestbookPage() {
             className="mt-7 h-px w-full bg-gradient-to-r from-stone-700/80 via-stone-800/60 to-transparent"
             aria-hidden="true"
           />
+        </div>
 
-          <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(240px,300px)_1px_minmax(0,1fr)] lg:gap-0 xl:grid-cols-[320px_1px_minmax(0,1fr)]">
-            {/* ===== 左栏：接待台说明（滚动时吸附） ===== */}
-            <aside className="lg:sticky lg:top-24 lg:self-start lg:pr-8 xl:pr-10">
+        {/* ===== 登记簿本体：整页通栏，左侧留一条档案夹书脊 ===== */}
+        <div className="relative mt-12 lg:pl-12">
+          {/* 书脊：竖排册名 + 上下延伸的细线，像夹在架上的一册卷宗 */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 hidden w-7 flex-col items-center lg:flex"
+            aria-hidden="true"
+          >
+            <span className="w-px flex-1 bg-stone-800/70" />
+            <span className="my-5 rotate-180 whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.45em] text-stone-500 [writing-mode:vertical-rl]">
+              Guestbook · Vol. 01 · Est. 1897
+            </span>
+            <span className="w-px flex-1 bg-stone-800/70" />
+          </div>
+
+          {/* 引导语 + 三条规章：从侧栏搬到正文里，横排两栏 */}
+          <div className="grid gap-10 border-b border-stone-800/70 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-20">
+            <div>
               <p className="text-lg leading-8 text-stone-300">
                 门不必敲。
                 <br />
                 到了这里，便算与事务所有了往来。
               </p>
-              <p className="mt-5 text-sm leading-7 text-stone-500">
+              <p className="mt-4 max-w-[54ch] text-pretty text-sm leading-7 text-stone-500">
                 留言簿就摊在接待台上。写下的每一条都会归入档案，谁都能翻阅。
               </p>
-
-              <ol className="mt-10 space-y-5 border-t border-stone-800/70 pt-8">
-                {RULES.map((r) => (
-                  <li key={r.no} className="grid grid-cols-[2rem_1fr] gap-3">
-                    <span className="pt-0.5 font-mono text-[11px] tabular-nums text-stone-500">
-                      {r.no}
-                    </span>
-                    <span className="text-sm leading-6 text-stone-500">
-                      {r.text}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-
-              <div className="mt-12 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em] text-stone-500">
-                <span className="h-px w-8 bg-stone-700/80" aria-hidden="true" />
-                Miss Christie&apos;s Agency
-              </div>
-            </aside>
-
-            {/* 版心竖线：把两栏收进同一张「案卷页」，不靠卡片和阴影分层 */}
-            <div className="hidden bg-stone-800/80 lg:block" aria-hidden="true" />
-
-            {/* ===== 右栏：落笔区 + 往来记录（流体填满右侧） ===== */}
-            <div className="min-w-0 lg:pl-8 xl:pl-10">
-              <GuestbookBoard />
             </div>
+
+            <ol className="space-y-4 lg:pt-1">
+              {RULES.map((r) => (
+                <li key={r.no} className="grid grid-cols-[2rem_1fr] gap-2">
+                  <span className="pt-0.5 font-mono text-[11px] tabular-nums text-stone-500">
+                    {r.no}
+                  </span>
+                  <span className="text-sm leading-6 text-stone-500">
+                    {r.text}
+                  </span>
+                </li>
+              ))}
+            </ol>
           </div>
+
+          <GuestbookBoard />
         </div>
       </div>
     </main>
