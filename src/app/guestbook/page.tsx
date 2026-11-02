@@ -36,9 +36,9 @@ export default function GuestbookPage() {
             aria-hidden="true"
           />
 
-          <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(240px,300px)_1px_minmax(0,1fr)] lg:gap-0 xl:grid-cols-[320px_1px_minmax(0,1fr)]">
             {/* ===== 左栏：接待台说明（滚动时吸附） ===== */}
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+            <aside className="lg:sticky lg:top-24 lg:self-start lg:pr-8 xl:pr-10">
               <p className="text-lg leading-8 text-stone-300">
                 门不必敲。
                 <br />
@@ -61,14 +61,17 @@ export default function GuestbookPage() {
                 ))}
               </ol>
 
-              <div className="mt-12 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em] text-stone-600">
+              <div className="mt-12 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em] text-stone-500">
                 <span className="h-px w-8 bg-stone-700/80" aria-hidden="true" />
                 Miss Christie&apos;s Agency
               </div>
             </aside>
 
+            {/* 版心竖线：把两栏收进同一张「案卷页」，不靠卡片和阴影分层 */}
+            <div className="hidden bg-stone-800/80 lg:block" aria-hidden="true" />
+
             {/* ===== 右栏：落笔区 + 往来记录（流体填满右侧） ===== */}
-            <div className="min-w-0">
+            <div className="min-w-0 lg:pl-8 xl:pl-10">
               <GuestbookBoard />
             </div>
           </div>

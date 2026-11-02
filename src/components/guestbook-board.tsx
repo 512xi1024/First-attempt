@@ -149,9 +149,13 @@ export default function GuestbookBoard() {
         onSubmit={handleSubmit}
         className="relative rounded-sm border border-stone-700/50 bg-stone-900/50 backdrop-blur-[2px] transition-colors focus-within:border-amber-200/40"
       >
-        <div className="flex items-baseline justify-between border-b border-stone-800 px-5 py-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-stone-500">
-            New entry
+        <div className="flex items-center justify-between border-b border-stone-800 px-5 py-3">
+          <span className="flex items-center gap-2.5">
+            {/* 2px 竖条代替全大写 eyebrow 当阅读起点（照 planetscale 的做法） */}
+            <span className="h-3.5 w-[2px] bg-amber-200/60" aria-hidden="true" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-stone-500">
+              New entry
+            </span>
           </span>
           <span
             aria-hidden="true"
@@ -232,33 +236,54 @@ export default function GuestbookBoard() {
 
       {/* ===== 往来记录 ===== */}
       <section aria-labelledby="gb-log" ref={logRef} className="mt-14 scroll-mt-24">
-        <div className="flex items-baseline justify-between border-b border-stone-800 pb-3">
+        {/* ===== 登记簿表头：编号列 / 记录列 / 归档时间列 =====
+            与下方每行共用同一套栅格，分隔竖线才能上下连成一条 */}
+        <div className="grid grid-cols-[3.25rem_1fr] gap-x-4 border-y border-stone-800 sm:grid-cols-[4rem_1fr] sm:gap-x-6">
           <h2
             id="gb-log"
-            className="font-mono text-[10px] uppercase tracking-[0.35em] text-stone-500"
+            className="pb-2.5 pt-3 font-mono text-[10px] uppercase tracking-[0.25em] text-stone-500"
           >
-            往来记录
+            №
           </h2>
-          <span className="font-mono text-[11px] tabular-nums text-stone-500">
-            {loading ? "——" : String(entries.length).padStart(2, "0")} 条
-          </span>
+          <div className="flex items-baseline justify-between gap-4 border-l border-stone-800/70 pb-2.5 pl-4 pt-3 sm:pl-6">
+            <span className="flex items-center gap-2.5">
+              <span className="h-3 w-[2px] bg-amber-200/60" aria-hidden="true" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-stone-500">
+                往来记录
+              </span>
+            </span>
+            <span className="flex items-baseline gap-5 font-mono text-[10px] uppercase tracking-[0.25em] text-stone-500">
+              <span className="tabular-nums">
+                {loading ? "——" : String(entries.length).padStart(2, "0")} 条
+              </span>
+              <span className="hidden sm:inline">Filed</span>
+            </span>
+          </div>
         </div>
 
         {loading ? (
-          // 读取中的骨架：三行灰线
-          <div className="space-y-8 py-8" aria-hidden="true">
+          // 读取中的骨架：三行灰线，栅格与真实记录一致，加载完不跳版
+          <div aria-hidden="true">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="animate-pulse space-y-3">
-                <div className="h-3 w-32 bg-stone-800/80" />
-                <div className="h-3 w-full bg-stone-800/50" />
-                <div className="h-3 w-2/3 bg-stone-800/40" />
+              <div
+                key={i}
+                className="grid grid-cols-[3.25rem_1fr] gap-x-4 border-b border-stone-800/70 sm:grid-cols-[4rem_1fr] sm:gap-x-6"
+              >
+                <div className="py-6">
+                  <div className="h-3 w-12 animate-pulse bg-stone-800/70" />
+                </div>
+                <div className="animate-pulse space-y-3 border-l border-stone-800/70 py-6 pl-4 sm:pl-6">
+                  <div className="h-3 w-28 bg-stone-800/80" />
+                  <div className="h-3 w-full bg-stone-800/50" />
+                  <div className="h-3 w-2/3 bg-stone-800/40" />
+                </div>
               </div>
             ))}
           </div>
         ) : entries.length === 0 ? (
           <div className="border-b border-stone-800/70 py-16 text-center">
             <p className="text-sm text-stone-500">簿册还空着。</p>
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.35em] text-stone-700">
+            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.35em] text-stone-500">
               The first record awaits
             </p>
           </div>
@@ -267,12 +292,17 @@ export default function GuestbookBoard() {
             {entries.map((c, i) => (
               <li
                 key={c.id}
-                className="group grid grid-cols-[3.25rem_1fr] gap-x-4 border-b border-stone-800/70 py-6 transition-colors hover:bg-stone-900/25 sm:grid-cols-[4rem_1fr] sm:gap-x-6"
+                className="group relative grid grid-cols-[3.25rem_1fr] gap-x-4 border-b border-stone-800/70 transition-colors hover:bg-stone-900/25 sm:grid-cols-[4rem_1fr] sm:gap-x-6"
               >
-                <span className="pt-1 font-mono text-[11px] tabular-nums text-stone-500">
+                {/* 抽出卷宗的手感：hover 时左缘浮出一条琥珀细线 */}
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 h-full w-[2px] bg-amber-200/0 transition-colors duration-200 group-hover:bg-amber-200/45"
+                />
+                <span className="py-6 font-mono text-[11px] tabular-nums text-stone-500 transition-colors group-hover:text-amber-200/80">
                   № {String(entries.length - i).padStart(3, "0")}
                 </span>
-                <article>
+                <article className="border-l border-stone-800/70 py-6 pl-4 sm:pl-6">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <span className="flex items-center gap-2 text-sm text-amber-100/90">
                       {c.nickname}
